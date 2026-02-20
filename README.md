@@ -1,6 +1,6 @@
-# Premium Chat Application
+# Real-Time Individual Chat Application 
 
-A real-time, professional chat application built with Django, Channels, and a premium teal-themed UI.
+A real-time, professional chat application built with Django MVT + Django Channels.
 
 ## Features
 - **Real-Time Messaging**: Instant message delivery using WebSockets (Django Channels).
@@ -8,7 +8,6 @@ A real-time, professional chat application built with Django, Channels, and a pr
 - **File Sharing**: Capability to send and receive files within chat rooms.
 - **Emoji Support**: Integrated emoji picker for expressive communication.
 - **Identity & Auth**: Full registration and login system with email verification (via Allauth).
-- **Premium Design System**: A cohesive, professional teal aesthetic with smooth animations and responsive layouts.
 
 ## Prerequisite
 - Python 3.10+
@@ -19,7 +18,6 @@ A real-time, professional chat application built with Django, Channels, and a pr
 1. **Clone the repository**:
    ```bash
    git clone <repository-url>
-   cd ZYBOTECH_TVM/src/chatapp
    ```
 
 2. **Create and activate a virtual environment**:
@@ -35,7 +33,7 @@ A real-time, professional chat application built with Django, Channels, and a pr
    ```
 
 4. **Environment Configuration**:
-   Create a `.env` file in the `src/chatapp` directory (or use the existing one) with the following variables:
+   Create a `.env` file in the `src/chatapp` directory with the following variables:
    ```env
    SECRET_KEY=your_secret_key_here
    DEBUG=True
@@ -55,15 +53,10 @@ A real-time, professional chat application built with Django, Channels, and a pr
    python manage.py migrate
    ```
 
-2. **Create a Superuser** (Optional):
+2. **Create a Superuser**:
    To access the Django admin panel.
    ```bash
    python manage.py createsuperuser
-   ```
-
-3. **Collect Static Files**:
-   ```bash
-   python manage.py collectstatic --noinput
    ```
 
 ## How to Run the Project
