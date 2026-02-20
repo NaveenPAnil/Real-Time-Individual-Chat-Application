@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Contacts | ChatApp{% endblock %}
+
+{% block extra_css %}
+<style>
+    .contact-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        transition: var(--transition);
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .contact-card:hover {
+        border-color: var(--primary-teal);
+        box-shadow: var(--premium-shadow);
+        transform: translateY(-4px);
+    }
+
+    .avatar-lg {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid white;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: var(--transition);
+    }
+
+    .contact-card:hover .avatar-lg {
+        border-color: var(--primary-light);
+        transform: scale(1.05);
+    }
+
+    .status-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.35rem 0.75rem;
+        border-radius: 30px;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .badge-online {
+        background-color: #ecfdf5;
+        color: #059669;
+    }
+
+    .badge-offline {
+        background-color: #f1f5f9;
+        color: #64748b;
+    }
+
+    .unread-pill {
+        background-color: #ef4444;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.25rem 0.6rem;
+        border-radius: 9999px;
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
+    }
+
+    .chat-link {
+        color: var(--primary-teal);
+        font-size: 0.875rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: var(--transition);
+    }
+
+    .contact-card:hover .chat-link {
+        gap: 0.75rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Contacts</h2>
+            <p class="text-muted small">Select a teammate to start chatting</p>
+        </div>
+        <div class="text-muted small">
+            <span class="fw-bold text-dark">{{ users|length }}</span> Total Users
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for u in users %}
+        <div class="col-md-6 col-lg-4">
+            <a href="{% url 'chat_room' u.id %}" class="contact-card p-4 position-relative">
+                {% if u.unread_count > 0 %}
+                <span class="unread-pill">{{ u.unread_count }}</span>
+                {% endif %}
+
+                <div class="d-flex align-items-center">
+                    <img src="https://ui-avatars.com/api/?name={{ u.email }}&background=random&size=128"
+                        class="avatar-lg me-4" alt="">
+                    <div class="flex-grow-1 overflow-hidden">
+                        <h5 class="mb-1 text-truncate fw-bold">{{ u.username }}</h5>
+                        <p class="text-muted small text-truncate mb-3">{{ u.email }}</p>
+
+                        <div class="d-flex align-items-center justify-content-between">
+                            {% if u.is_online %}
+                            <span class="status-badge badge-online"><i class="fas fa-circle me-1"
+                                    style="font-size: 0.4rem;"></i> Online</span>
+                            {% else %}
+                            <div class="d-flex flex-column">
+                                <span class="status-badge badge-offline mb-1"><i class="fas fa-circle me-1"
+                                        style="font-size: 0.4rem;"></i> Offline</span>
+                                <small class="text-muted" style="font-size: 0.65rem;">Seen {{ u.last_seen|naturaltime }}</small>
+                            </div>
+                            {% endif %}
+
+                            <span class="chat-link">
+                                Chat <i class="fas fa-arrow-right"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="text-muted mb-3">
+                <i class="fas fa-users fa-3x opacity-25"></i>
+            </div>
+            <h5>No contacts found</h5>
+            <p class="text-muted">Wait for others to join or invite your teammates.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
