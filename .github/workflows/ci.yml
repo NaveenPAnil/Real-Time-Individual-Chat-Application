@@ -4,10 +4,12 @@ on:
   push:
     branches:
       - main
+      - master
 
   pull_request:
     branches:
       - main
+      - master
 
 
 jobs:
@@ -15,6 +17,24 @@ jobs:
   test:
     name: Test Django Application
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+
+        env:
+          POSTGRES_DB: chatapp_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+
+        ports:
+          - 5432:5432
+
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
 
@@ -36,6 +56,13 @@ jobs:
         env:
           SECRET_KEY: dummy-secret-key-for-ci
           DEBUG: "True"
+
+          Db_name: chatapp_test
+          Db_user: postgres
+          Db_password: postgres
+          Db_host: localhost
+          Db_port: 5432
+
         run: |
           python manage.py check
 
@@ -43,6 +70,13 @@ jobs:
         env:
           SECRET_KEY: dummy-secret-key-for-ci
           DEBUG: "True"
+
+          Db_name: chatapp_test
+          Db_user: postgres
+          Db_password: postgres
+          Db_host: localhost
+          Db_port: 5432
+
         run: |
           python manage.py makemigrations --check --dry-run
 
@@ -50,6 +84,13 @@ jobs:
         env:
           SECRET_KEY: dummy-secret-key-for-ci
           DEBUG: "True"
+
+          Db_name: chatapp_test
+          Db_user: postgres
+          Db_password: postgres
+          Db_host: localhost
+          Db_port: 5432
+
         run: |
           python manage.py test
 
@@ -64,7 +105,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build Docker image
+      - name: Build Docker Image
         run: |
           docker build -t chatapp:${{ github.sha }} .
 
@@ -72,7 +113,9 @@ jobs:
   deploy:
     name: Deploy to Render
     needs: docker-build
+
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
     runs-on: ubuntu-latest
 
     steps:
@@ -80,6 +123,7 @@ jobs:
       - name: Trigger Render deployment
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+
         run: |
           curl -X POST "$RENDER_DEPLOY_HOOK_URL"
 
