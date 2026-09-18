@@ -1,0 +1,164 @@
+name: Django CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+
+jobs:
+
+  test:
+    name: Test Django Application
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Django system check
+        env:
+          SECRET_KEY: dummy-secret-key-for-ci
+          DEBUG: "True"
+        run: |
+          python manage.py check
+
+      - name: Check migrations
+        env:
+          SECRET_KEY: dummy-secret-key-for-ci
+          DEBUG: "True"
+        run: |
+          python manage.py makemigrations --check --dry-run
+
+      - name: Run tests
+        env:
+          SECRET_KEY: dummy-secret-key-for-ci
+          DEBUG: "True"
+        run: |
+          python manage.py test
+
+
+  docker-build:
+    name: Build Docker Image
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t chatapp:${{ github.sha }} .
+
+
+  deploy:
+    name: Deploy to Render
+    needs: docker-build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Trigger Render deployment
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          curl -X POST "$RENDER_DEPLOY_HOOK_URL"
+
+
+
+
+
+
+
+
+
+
+# ************************************************************************************************
+
+# name: Django CI/CD
+
+# on:
+#   push:
+#     branches: [ "main", "master" ]
+#   pull_request:
+#     branches: [ "main", "master" ]
+
+# jobs:
+#   build-and-test:
+#     runs-on: ubuntu-latest
+#     strategy:
+#       matrix:
+#       python-version: "3.12"
+#     steps:
+#     - uses: actions/checkout@v4
+    
+#     - name: Set up Python ${{ matrix.python-version }}
+#       uses: actions/setup-python@v5
+#       with:
+#         python-version: ${{ matrix.python-version }}
+#         cache: 'pip'
+        
+#     - name: Install dependencies
+#       run: |
+#         python -m pip install --upgrade pip
+#         pip install -r requirements.txt
+        
+#     - name: Check Migrations
+#       env:
+#         SECRET_KEY: dummy_secret_key_for_testing_ci
+#         DEBUG: True
+#       run: |
+#         python manage.py makemigrations --check --dry-run
+        
+#     - name: Run tests
+#       env:
+#         SECRET_KEY: dummy_secret_key_for_testing_ci
+#         DEBUG: True
+#       run: |
+#         python manage.py test
+
+#   docker-build:
+#     needs: build-and-test
+#     runs-on: ubuntu-latest
+#     steps:
+#     - uses: actions/checkout@v4
+#     - name: Build Docker Image
+#       run: docker build -t chatapp:latest .
+
+#   deploy:
+#     needs: docker-build
+#     runs-on: ubuntu-latest
+#     # Only deploy when code is merged or pushed to main/master
+#     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+#     steps:
+#       - name: Trigger Render Deployment
+#         env:
+#           deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+#         run: |
+#           if [ -n "$deploy_url" ]; then
+#             echo "Triggering deployment..."
+#             curl -X POST -d {} "$deploy_url"
+#             echo "Deployment triggered."
+#           else
+#             echo "RENDER_DEPLOY_HOOK_URL secret is not set in GitHub repository settings."
+#             echo "Continuous Deployment skipped."
+#           fi
